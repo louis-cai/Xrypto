@@ -64,18 +64,18 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         hedge_eos_amount = min(hedge_eos_amount, pair_2to1_eos_amount)
         hedge_eos_amount = min(max_trade_amount, hedge_eos_amount)
 
-        if hedge_eos_amount < 0.05:
-            logging.verbose('hedge_ EOS _amount is too small! %s' % hedge_eos_amount)
+        if hedge_eos_amount < 0.002:
+            logging.verbose('hedge_ EOS _amount is too small! %0.5f' % hedge_eos_amount)
             return
 
         hedge_eth_amount = hedge_eos_amount * pair1_bid_price
         if hedge_eth_amount < 0.01:
-            logging.verbose('hedge_ ETH _amount is too small! %s' % hedge_eth_amount)
+            logging.verbose('hedge_ ETH _amount is too small! %0.5f' % hedge_eth_amount)
             return
 
-        synthetic_bid_price = round(pair1_bid_price * pair2_bid_price, 2)
+        synthetic_bid_price = round(pair1_bid_price * pair2_bid_price, 4)
 
-        t_price = round(base_pair_ask_price * config.TFEE * config.Diff, 2)
+        t_price = round(base_pair_ask_price * config.TFEE * config.Diff, 4)
         logging.verbose("synthetic_bid_price: %s t_price:%s" % (synthetic_bid_price, t_price))
 
         p_diff = synthetic_bid_price - t_price
@@ -132,23 +132,23 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         hedge_eos_amount = min(hedge_eos_amount, pair_2to1_eos_amount)
         hedge_eos_amount = min(max_trade_amount, hedge_eos_amount)
 
-        if hedge_eos_amount < 0.05:
+        if hedge_eos_amount < 0.002:
             logging.verbose('hedge_ EOS _amount is too small! %s' % hedge_eos_amount)
             return
 
         hedge_eth_amount = hedge_eos_amount * pair1_ask_price
-        if hedge_eth_amount < 0.01:
+        if hedge_eth_amount < 0.001:
             logging.verbose('hedge_ ETH _amount is too small! %s' % hedge_eth_amount)
             return
 
-        synthetic_ask_price = round(pair1_ask_price * pair2_ask_price, 2)
+        synthetic_ask_price = round(pair1_ask_price * pair2_ask_price, 4)
 
-        t_price = round(base_pair_bid_price * config.TFEE * config.Diff, 2)
+        t_price = round(base_pair_bid_price * config.TFEE * config.Diff, 4)
         logging.verbose("synthetic_ask_price: %s t_price:%s" % (synthetic_ask_price, t_price))
 
         p_diff = synthetic_ask_price - t_price
 
-        profit = round(p_diff * hedge_eos_amount, 2)
+        profit = round(p_diff * hedge_eos_amount, 4)
         logging.verbose('profit=%s' % profit)
 
         if p_diff > 0:
