@@ -7,11 +7,13 @@ import bitfinex
 
 class Bitfinex(Market):  # pylint: disable=W0223
 
-    def __init__(self, api_key=None, api_secret=None):
+    def __init__(self, base_currency, market_currency, pair_code, api_key=None, api_secret=None):
         assert isinstance(api_key, str)
         assert isinstance(api_secret, str)
-        super().__init__("BTC", "BCH", "bchbtc")
-
+        assert isinstance(base_currency, str)
+        assert isinstance(market_currency, str)
+        assert isinstance(pair_code, str)
+        super().__init__(base_currency, market_currency, pair_code)
         self.client = bitfinex.TradeClient(api_key, api_secret)
 
     def _buy_limit(self, amount, price):

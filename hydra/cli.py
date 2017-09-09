@@ -17,7 +17,9 @@ import config
 import traceback
 from snapshot import Snapshot
 
+
 class ArbitrerCLI:
+
     def __init__(self):
         self.inject_verbose_info()
 
@@ -27,13 +29,17 @@ class ArbitrerCLI:
         logging.addLevelName(logging.VERBOSE, "VERBOSE")
 
     def exec_command(self, args):
-        logging.debug('exec_command:%s' % args)
+        logging.debug('exec_command:%s', args)
         if "watch" in args.command:
             self.create_arbitrer(args)
             self.arbitrer.loop()
 
         if "t-watch-viabtc-bcc" in args.command:
             self.create_t_arbitrer_viabtc_bcc(args)
+            self.arbitrer.loop()
+
+        if "t-watch-bitfinex-eos" in args.command:
+            self.create_t_arbitrer_bitfinex_eos(args)
             self.arbitrer.loop()
 
         if "t-watch-binance-wtc" in args.command:
@@ -70,6 +76,9 @@ class ArbitrerCLI:
         if "test_pri" in args.command:
             self.test_pri(args)
 
+    def get_broker_balance(self, args):
+        raise NotImplementedError("%s.get_broker_balance(self, args)" % self.name)
+
     def list_markets(self):
         logging.debug('list_markets') 
         for filename in glob.glob(os.path.join(markets.__path__[0], "*.py")):
@@ -83,7 +92,6 @@ class ArbitrerCLI:
                             print(obj.__name__)
         sys.exit(0)
 
-
     def test_pub(self, args):
         if not args.markets:
             logging.error("You must use --markets argument to specify markets")
@@ -93,7 +101,7 @@ class ArbitrerCLI:
         for pmarket in pmarkets:
             exec('import markets.' + pmarket.lower())
             market = eval('markets.' + pmarket.lower() + '.' +
-                           pmarket + '()')
+                          pmarket + '()')
             pmarketsi.append(market)
 
         for market in pmarketsi:
@@ -140,7 +148,7 @@ class ArbitrerCLI:
 
             snapshot.snapshot_balance('ALL', total_btc, total_bch)
 
-            time.sleep(60*10)
+            time.sleep(60 * 10)
 
     def create_arbitrer(self, args):
         self.arbitrer = Arbitrer()
@@ -149,8 +157,15 @@ class ArbitrerCLI:
     def create_t_arbitrer_viabtc_bcc(self, args):
         from t_arbitrer_viabtc import TrigangularArbitrer_Viabtc
         self.arbitrer = TrigangularArbitrer_Viabtc(base_pair='Viabtc_BCH_CNY',
-                                                    pair1='Viabtc_BCH_BTC',
-                                                    pair2='Viabtc_BTC_CNY')
+                                                   pair1='Viabtc_BCH_BTC',
+                                                   pair2='Viabtc_BTC_CNY')
+        self.init_observers_and_markets(args)
+
+    def create_t_arbitrer_bitfinex_eos(self, args):
+        from t_arbitrer_bitfinex import TrigangularArbitrer_Bitfinex
+        self.arbitrer = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_EOS_USD',
+                                                     pair1='Bitfinex_EOS_ETH',
+                                                     pair2='Bitfinex_ETH_USD')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_wtc(self, args):
@@ -188,7 +203,6 @@ class ArbitrerCLI:
                                                     pair2='Binance_ETH_BTC')
         self.init_observers_and_markets(args)
 
-
     def init_observers_and_markets(self, args):
         if args.observers:
             self.arbitrer.init_observers(args.observers.split(","))
@@ -201,11 +215,11 @@ class ArbitrerCLI:
             level = logging.VERBOSE
         if args.debug:
             level = logging.DEBUG
-            
+
         logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s',
                             level=level)
 
-        Rthandler = RotatingFileHandler('hydra.log', maxBytes=100*1024*1024,backupCount=10)
+        Rthandler = RotatingFileHandler('hydra.log', maxBytes=100 * 1024 * 1024, backupCount=10)
         Rthandler.setLevel(level)
         formatter = logging.Formatter('%(asctime)-12s [%(levelname)s] %(message)s')  
         Rthandler.setFormatter(formatter)
@@ -231,6 +245,7 @@ class ArbitrerCLI:
         self.init_logger(args)
         self.exec_command(args)
         print('main end')
+
 
 def main():
     cli = ArbitrerCLI()

@@ -28,6 +28,10 @@ bch_max_tx_volume = 5  # in BCH
 bch_min_tx_volume = 0.5  # in BCH
 bch_frozen_volume = 10
 
+eos_max_tx_volume = 100  # in EOS
+eos_min_tx_volume = 0.01  # in EOS
+eos_frozen_volume = 10
+
 price_departure_perc = 0.002  # in BTC 1%
 
 bch_guide_dog_volume = 10
