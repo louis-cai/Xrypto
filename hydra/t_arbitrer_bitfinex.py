@@ -39,9 +39,10 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
 
     def observer_tick(self):
         self.forward()
-        # self.reverse()
+        self.reverse()
 
     def forward(self):
+        logging.verbose("------------------- t3 forward: -------------------")
         base_pair_ask_amount = self.depths[self.base_pair]["asks"][0]["amount"]
         base_pair_ask_price = self.depths[self.base_pair]["asks"][0]["price"]
 
@@ -62,7 +63,7 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         max_trade_amount = config.eos_max_tx_volume
         hedge_eos_amount = min(base_pair_ask_amount, pair1_bid_amount)
         hedge_eos_amount = min(hedge_eos_amount, pair_2to1_eos_amount)
-        hedge_eos_amount = min(max_trade_amount, hedge_eos_amount)
+        hedge_eos_amount = min(hedge_eos_amount, max_trade_amount)
 
         if hedge_eos_amount < 0.002:
             logging.verbose('hedge_ EOS _amount is too small! %0.5f' % hedge_eos_amount)
@@ -76,7 +77,7 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         synthetic_bid_price = round(pair1_bid_price * pair2_bid_price, 4)
 
         t_price = round(base_pair_ask_price * config.TFEE * config.Diff, 4)
-        logging.verbose("synthetic_bid_price: %s t_price:%s" % (synthetic_bid_price, t_price))
+        logging.verbose("forward synthetic_bid_price: %s t_price:%s" % (synthetic_bid_price, t_price))
 
         p_diff = synthetic_bid_price - t_price
         profit = p_diff * hedge_eos_amount
@@ -88,7 +89,7 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
                 base_pair_ask_price,
                 t_price))
 
-            logging.info('buy %s EOS @%s, sell ETH @synthetic: %s' % (self.base_pair, hedge_eos_amount, hedge_eth_amount))
+            logging.info('forward --buy %s EOS @%s, sell ETH @synthetic: %s' % (self.base_pair, hedge_eos_amount, hedge_eth_amount))
             if profit < 1:
                 logging.warning('profit should >= 1 USD')
                 return
@@ -108,7 +109,7 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
             self.last_trade = time.time()
 
     def reverse(self):
-        print("t3 reverse:")
+        logging.verbose("------------------- t3 reverse: -------------------")
 
         base_pair_bid_amount = self.depths[self.base_pair]["bids"][0]["amount"]
         base_pair_bid_price = self.depths[self.base_pair]["bids"][0]["price"]
@@ -127,38 +128,44 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         pair_2to1_eos_amount = pair2_ask_amount / pair1_ask_price
         # print(pair2_bid_amount, pair1_bid_price, pair_2to1_eos_amount)
 
-        max_trade_amount = 0.1
+        max_trade_amount = config.eos_max_tx_volume
         hedge_eos_amount = min(base_pair_bid_amount, pair1_ask_amount)
         hedge_eos_amount = min(hedge_eos_amount, pair_2to1_eos_amount)
-        hedge_eos_amount = min(max_trade_amount, hedge_eos_amount)
+        hedge_eos_amount = min(hedge_eos_amount, max_trade_amount)
 
         if hedge_eos_amount < 0.002:
             logging.verbose('hedge_ EOS _amount is too small! %s' % hedge_eos_amount)
+            logging.debug('base_pair_bid_amount:%s pair1_ask_amount:%s pair_2to1_eos_amount:%s max_trade_amount:%s',
+                          base_pair_bid_amount, pair1_ask_amount, pair_2to1_eos_amount, max_trade_amount)
             return
 
         hedge_eth_amount = hedge_eos_amount * pair1_ask_price
         if hedge_eth_amount < 0.001:
             logging.verbose('hedge_ ETH _amount is too small! %s' % hedge_eth_amount)
+            logging.debug('base_pair_bid_amount:%s pair1_ask_amount:%s pair_2to1_eos_amount:%s max_trade_amount:%s',
+                          base_pair_bid_amount, pair1_ask_amount, pair_2to1_eos_amount, max_trade_amount)
             return
 
         synthetic_ask_price = round(pair1_ask_price * pair2_ask_price, 4)
 
         t_price = round(base_pair_bid_price * config.TFEE * config.Diff, 4)
-        logging.verbose("synthetic_ask_price: %s t_price:%s" % (synthetic_ask_price, t_price))
+        logging.verbose("reverse synthetic_ask_price: %s t_price:%s" % (synthetic_ask_price, t_price))
 
         p_diff = synthetic_ask_price - t_price
-
         profit = round(p_diff * hedge_eos_amount, 4)
-        logging.verbose('profit=%s' % profit)
 
         if p_diff > 0:
+            logging.verbose('profit=%s' % profit)
             logging.verbose("find t!!!: p_diff:%s synthetic_ask_price: %s  base_pair_bid_price: %s t_price: %s" % (
                 p_diff,
                 synthetic_ask_price, 
                 base_pair_bid_price,
                 t_price))
 
-            logging.verbose('r--sell %s EOS @%s, buy @synthetic: %s' % (self.base_pair, hedge_eos_amount, hedge_eth_amount))
+            logging.verbose('reverse --sell %s EOS @%s, buy @synthetic: %s' % (self.base_pair, hedge_eos_amount, hedge_eth_amount))
+            if profit < 1:
+                logging.warning('profit should >= 1 USD')
+                return
 
             current_time = time.time()
             if current_time - self.last_trade < 10:
