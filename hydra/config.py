@@ -1,15 +1,15 @@
 markets = [
-# "BitstampUSD",
-# "BTCCCNY",
-# "BtceUSD",
-# "CoinbaseUSD",
-# "GeminiUSD",
-# "KrakenEUR",
-# "KrakenUSD",
-# "OKCoinCNY",
-# "HuobiCNY",
-# "Bitfinex_BCH_BTC",
-# "Bittrex_BCH_BTC",
+    # "BitstampUSD",
+    # "BTCCCNY",
+    # "BtceUSD",
+    # "CoinbaseUSD",
+    # "GeminiUSD",
+    # "KrakenEUR",
+    # "KrakenUSD",
+    # "OKCoinCNY",
+    # "HuobiCNY",
+    # "Bitfinex_BCH_BTC",
+    # "Bittrex_BCH_BTC",
 ]
 
 # observers if any
@@ -28,15 +28,15 @@ bch_max_tx_volume = 5  # in BCH
 bch_min_tx_volume = 0.5  # in BCH
 bch_frozen_volume = 10
 
-price_departure_perc = 0.002 #in BTC 1%
+price_departure_perc = 0.002  # in BTC 1%
 
 bch_guide_dog_volume = 10
 
-Diff = 1.001 # 0.1 % arbitrage to execute
+Diff = 1.001  # 0.1 % arbitrage to execute
 
-TFEE = 1.003 # 1+3*0.001
+TFEE = 1.003  # 1+3*0.001
 
-FEE = 1.0025 # fee for every trade (0.25%)
+FEE = 1.0025  # fee for every trade (0.25%)
 
 MAKER_TRADE_ENABLE = False
 TAKER_TRADE_ENABLE = True
@@ -57,14 +57,14 @@ bid_price_risk = 0
 ask_price_risk = 0
 
 
-#hedger
+# hedger
 
 reverse_profit_thresh = 1
 reverse_perc_thresh = 0.01
 reverse_max_tx_volume = 1  # in BTC
 
-stage0_percent=0.1
-stage1_percent=0.2
+stage0_percent = 0.1
+stage1_percent = 0.2
 
 BUY_QUEUE = 1
 SELL_QUEUE = 1
@@ -72,12 +72,12 @@ SELL_QUEUE = 1
 
 broker_min_amount = 0.01
 
-#stata
+# stata
 cny_init = 60000000000
 btc_init = 1200000
 price_init = 4450
 
-#### Emailer Observer Config
+# Emailer Observer Config
 send_trade_mail = False
 
 EMAIL_HOST = 'mail.FIXME.com'
@@ -88,7 +88,7 @@ EMAIL_USE_TLS = True
 EMAIL_RECEIVER = ['FIXME@FIXME.com']
 
 
-#### XMPP Observer
+# XMPP Observer
 xmpp_jid = "FROM@jabber.org"
 xmpp_password = "FIXME"
 xmpp_to = "TO@jabber.org"
@@ -97,7 +97,7 @@ xmpp_to = "TO@jabber.org"
 BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 18030
 
-#### Trader Bot Config
+# Trader Bot Config
 # Access to Broker APIs
 
 bitstamp_username = "FIXME"
