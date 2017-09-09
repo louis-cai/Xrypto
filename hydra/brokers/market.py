@@ -4,16 +4,20 @@ import logging
 import config
 import inspect
 
+
 def get_current_function_name():
     return inspect.stack()[1][3]
+
 
 class TradeException(Exception):
     pass
 
+
 class Market:
+
     def __init__(self, base_currency, market_currency, pair_code):
         self.name = self.__class__.__name__
-        self.brief_name  = self.name[7:]
+        self.brief_name = self.name[7:]
 
         self.base_currency = base_currency
         self.market_currency = market_currency
@@ -30,18 +34,18 @@ class Market:
 
     def __str__(self):
         return "%s: %s" % (self.name[7:], str({"cny_balance": self.cny_balance,
-                                            "cny_available": self.cny_available,
-                                            "btc_balance": self.btc_balance,
-                                            "btc_available": self.btc_available,
-                                           "bch_balance": self.bch_balance,
-                                           "bch_available": self.bch_available}))
+                                               "cny_available": self.cny_available,
+                                               "btc_balance": self.btc_balance,
+                                               "btc_available": self.btc_available,
+                                               "bch_balance": self.bch_balance,
+                                               "bch_available": self.bch_available}))
 
     def buy_limit(self, amount, price, client_id=None):
-        if amount > config.bch_guide_dog_volume:
+        if self.market_currency == 'BCH' and amount > config.bch_guide_dog_volume:
             raise
 
         logging.info("BUY LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.brief_name))
+                                                       price, self.base_currency, self.brief_name))
 
         try:
             if client_id:
@@ -52,13 +56,12 @@ class Market:
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
 
-
     def sell_limit(self, amount, price, client_id=None):
-        if amount > config.bch_guide_dog_volume:
+        if self.market_currency == 'BCH' and amount > config.bch_guide_dog_volume:
             raise
-            
+
         logging.info("SELL LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.brief_name))
+                                                        price, self.base_currency, self.brief_name))
 
         try:
             if client_id:
@@ -69,10 +72,9 @@ class Market:
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
 
-
     def buy_maker(self, amount, price):
         logging.info("BUY MAKER %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.brief_name))
+                                                       price, self.base_currency, self.brief_name))
 
         try:
             return self._buy_maker(amount, price)
@@ -82,7 +84,7 @@ class Market:
 
     def sell_maker(self, amount, price):
         logging.info("SELL MAKER %f %s at %f %s @%s" % (amount, self.market_currency, 
-                        price, self.base_currency, self.brief_name))
+                                                        price, self.base_currency, self.brief_name))
         try:
             return self._sell_maker(amount, price)
         except Exception as e:
@@ -98,7 +100,6 @@ class Market:
         except Exception as e:
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
-
 
     def cancel_order(self, order_id):
         if not order_id:
