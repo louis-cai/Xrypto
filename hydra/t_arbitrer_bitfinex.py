@@ -32,7 +32,8 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         self.last_trade = 0
 
     def update_balance(self):
-        self.clients[self.base_pair].get_balances()
+        # self.clients[self.base_pair].get_balances()
+        pass
 
     def tickers(self):
         pass
