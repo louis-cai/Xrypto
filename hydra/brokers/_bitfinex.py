@@ -81,15 +81,22 @@ class Bitfinex(Market):  # pylint: disable=W0223
                 continue
 
             currency = entry['currency'].upper()
-            if currency not in (
-                    'BTC', 'BCH'):
+            if currency not in ('BTC', 'BCH', 'USD', 'EOS', 'ETH'):
                 continue
 
             if currency == 'BCH':
                 self.bch_available = float(entry['available'])
                 self.bch_balance = float(entry['amount'])
-
             elif currency == 'BTC':
                 self.btc_available = float(entry['available'])
                 self.btc_balance = float(entry['amount'])
+            elif currency == 'USD':
+                self.usd_available = float(entry['available'])
+                self.usd_balance = float(entry['amount'])
+            elif currency == 'EOS':
+                self.eos_available = float(entry['available'])
+                self.eos_balance = float(entry['amount'])
+            elif currency == 'ETH':
+                self.eth_available = float(entry['available'])
+                self.eth_balance = float(entry['amount'])
         return res

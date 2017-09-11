@@ -32,13 +32,28 @@ class Market:
         self.bch_balance = 0.
         self.bch_available = 0.
 
+        self.usd_balance = 0.
+        self.usd_available = 0.
+
+        self.eos_balance = 0.
+        self.eos_available = 0.
+
+        self.eth_balance = 0.
+        self.eth_available = 0.
+
     def __str__(self):
         return "%s: %s" % (self.name[7:], str({"cny_balance": self.cny_balance,
                                                "cny_available": self.cny_available,
                                                "btc_balance": self.btc_balance,
                                                "btc_available": self.btc_available,
                                                "bch_balance": self.bch_balance,
-                                               "bch_available": self.bch_available}))
+                                               "bch_available": self.bch_available,
+                                               "usd_balance": self.usd_balance,
+                                               "usd_available": self.usd_available,
+                                               "eos_balance": self.eos_balance,
+                                               "eos_available": self.eos_available,
+                                               "eth_balance": self.eth_balance,
+                                               "eth_available": self.eth_available}))
 
     def buy_limit(self, amount, price, client_id=None):
         if self.market_currency == 'BCH' and amount > config.bch_guide_dog_volume:
