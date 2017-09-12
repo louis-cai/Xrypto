@@ -53,12 +53,12 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         _forward_price = self.forward_price()
         _reverse_price = self.reverse_price()
         _sum_slippage_fee = self.sum_slippage_fee()
-        logging.info("正循环差价:%0.5f, 滑点+手续费:%0.5f", _forward_price, _sum_slippage_fee)
-        logging.info("逆循环差价:%0.5f, 滑点+手续费:%0.5f", _reverse_price, _sum_slippage_fee)
+        logging.info("forward spread:%0.5f, cost:%0.3f", _forward_price, _sum_slippage_fee)
+        logging.info("reverse spread:%0.5f, cost:%0.3f", _reverse_price, _sum_slippage_fee)
         if _forward_price > _sum_slippage_fee:
-            logging.info("正循环 find t!!!")
+            logging.info("forward find t!!!")
         elif _sum_slippage_fee > _sum_slippage_fee:
-            logging.info("逆循环 find t!!!")
+            logging.info("reverse find t!!!")
 
     def forward_price(self):
         market_price_sell_1 = self.depths[self.pair_1]["asks"][0]["price"]
