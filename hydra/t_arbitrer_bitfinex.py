@@ -7,7 +7,7 @@ import logging
 import time
 import config
 from arbitrer import Arbitrer
-from brokers import bitfinex_eos_usd, bitfinex_eos_eth, bitfinex_eth_usd
+# from brokers import bitfinex_eos_usd, bitfinex_eos_eth, bitfinex_eth_usd
 
 
 class TrigangularArbitrer_Bitfinex(Arbitrer):
@@ -24,12 +24,17 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         t_secret_token = config.t_Bitfinex_SECRET_TOKEN
 
         self.clients = {
-            self.base_pair: bitfinex_eos_usd.BrokerBitfinex_EOS_USD(t_api_key, t_secret_token),
-            self.pair_1: bitfinex_eos_eth.BrokerBitfinex_EOS_ETH(t_api_key, t_secret_token),
-            self.pair_2: bitfinex_eth_usd.BrokerBitfinex_ETH_USD(t_api_key, t_secret_token),
+            self.base_pair: self.build_broker(self.base_pair, t_api_key, t_secret_token),
+            self.pair_1: self.build_broker(self.pair_1, t_api_key, t_secret_token),
+            self.pair_2: self.build_broker(self.pair_2, t_api_key, t_secret_token),
         }
 
         self.last_trade = 0
+
+    @staticmethod
+    def build_broker(pair, t_api_key, t_secret_token):
+        exec('from brokers import ' + pair.lower())  # pylint:disable=w0122
+        return eval("%s.Broker%s" % (pair.lower(), pair))(t_api_key, t_secret_token)  # pylint:disable=w0123
 
     def update_balance(self):
         # self.clients[self.base_pair].get_balances()
