@@ -38,6 +38,9 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
     def tickers(self):
         pass
 
+    def marge_depths(self):
+        pass
+
     def observer_tick(self):
         # logging.verbose('%s' % str({"usd_balance": self.clients[self.base_pair].usd_balance,
         #                             "usd_available": self.clients[self.base_pair].usd_available,
@@ -45,8 +48,32 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         #                             "eos_available": self.clients[self.base_pair].eos_available,
         #                             "eth_balance": self.clients[self.base_pair].eth_balance,
         #                             "eth_available": self.clients[self.base_pair].eth_available}))
-        self.forward()
-        self.reverse()
+        # self.forward()
+        # self.reverse()
+        _forward_price = self.forward_price()
+        _reverse_price = self.reverse_price()
+        _sum_slippage_fee = self.sum_slippage_fee()
+        logging.info("正循环差价:%0.5f, 滑点+手续费:%0.5f", _forward_price, _sum_slippage_fee)
+        logging.info("逆循环差价:%0.5f, 滑点+手续费:%0.5f", _reverse_price, _sum_slippage_fee)
+        if _forward_price > _sum_slippage_fee:
+            logging.info("正循环 find t!!!")
+        elif _sum_slippage_fee > _sum_slippage_fee:
+            logging.info("逆循环 find t!!!")
+
+    def forward_price(self):
+        market_price_sell_1 = self.depths[self.pair_1]["asks"][0]["price"]
+        base_mid_price_buy_1 = self.depths[self.base_pair]["bids"][0]["price"]
+        quote_mid_price_sell_1 = self.depths[self.pair_2]["asks"][0]["price"]
+        return (base_mid_price_buy_1 / quote_mid_price_sell_1 - market_price_sell_1) / market_price_sell_1
+
+    def reverse_price(self):
+        market_price_buy_1 = self.depths[self.pair_1]["bids"][0]["price"]
+        base_mid_price_sell_1 = self.depths[self.base_pair]["asks"][0]["price"]
+        quote_mid_price_buy_1 = self.depths[self.pair_2]["bids"][0]["price"]
+        return (market_price_buy_1 - base_mid_price_sell_1 / quote_mid_price_buy_1) / market_price_buy_1
+
+    def sum_slippage_fee(self):
+        return 0.002 * 6
 
     def forward(self):
         logging.verbose("------------------- t3 forward: -------------------")
@@ -88,7 +115,6 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
         synthetic_bid_price = round(pair1_bid_price * pair2_bid_price, 4)
 
         t_price = round(base_pair_ask_price * config.TFEE * config.Diff, 4)
-        logging.verbose("synthetic_bid_price: %s t_price:%s" % (synthetic_bid_price, t_price))
 
         p_diff = synthetic_bid_price - t_price
         profit = p_diff * hedge_eos_amount
@@ -135,6 +161,8 @@ class TrigangularArbitrer_Bitfinex(Arbitrer):
 
         if pair1_ask_price == 0 or pair2_ask_price == 0:
             return
+
+        logging.info("逆循环差价：%0.5f", (base_pair_bid_price / pair2_ask_price - pair1_ask_price) / pair1_ask_price)
 
         pair_2to1_eos_amount = pair2_ask_amount / pair1_ask_price
         # print(pair2_bid_amount, pair1_bid_price, pair_2to1_eos_amount)
