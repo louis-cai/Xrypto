@@ -42,6 +42,10 @@ class ArbitrerCLI:
             self.create_t_arbitrer_bitfinex_eos(args)
             self.arbitrer.loop()
 
+        if "t-watch-bitfinex-bch" in args.command:
+            self.create_t_arbitrer_bitfinex_bch(args)
+            self.arbitrer.loop()
+
         if "t-watch-binance-wtc" in args.command:
             self.create_t_arbitrer_binance_wtc(args)
             self.arbitrer.loop()
@@ -166,6 +170,13 @@ class ArbitrerCLI:
         self.arbitrer = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_EOS_USD',
                                                      pair1='Bitfinex_EOS_ETH',
                                                      pair2='Bitfinex_ETH_USD')
+        self.init_observers_and_markets(args)
+
+    def create_t_arbitrer_bitfinex_bch(self, args):
+        from t_arbitrer_bitfinex import TrigangularArbitrer_Bitfinex
+        self.arbitrer = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_BCH_USD',
+                                                     pair1='Bitfinex_BCH_BTC',
+                                                     pair2='Bitfinex_BTC_USD')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_wtc(self, args):

@@ -7,7 +7,6 @@ import logging
 import time
 import config
 from arbitrer import Arbitrer
-# from brokers import bitfinex_eos_usd, bitfinex_eos_eth, bitfinex_eth_usd
 
 
 class TrigangularArbitrer_Bitfinex(Arbitrer):
