@@ -1,31 +1,28 @@
 #-*- coding: utf-8 -*-
 
 # Copyright (C) 2017, Phil Song <songbohr@gmail.com>
-
-import markets
-import observers
+# pylint:disable=w0122,w0123,w1201,w1505
+# import markets
+# import observers
 import config
 import time
 import logging
-import json
 from concurrent.futures import ThreadPoolExecutor, wait
 import traceback
-
-import re, sys, re
-import string
+import sys
 import signal
 
 
 is_sigint_up = False
 
 
-def sigint_handler(signum, frame):
-    global is_sigint_up
+def sigint_handler(signum, frame):  # pylint:disable=w0613
+    global is_sigint_up  # pylint:disable=w0603
     is_sigint_up = True
     print('catched interrupt signal!')
 
 
-class Datafeed(object):
+class DataFeed(object):
 
     def __init__(self):
         self.markets = []
@@ -102,7 +99,6 @@ class Datafeed(object):
     def replay_history(self, directory):
         import os
         import json
-        import pprint
         files = os.listdir(directory)
         files.sort()
         for f in files:
@@ -144,7 +140,7 @@ class Datafeed(object):
 
             try:
                 self.tick()
-            except Exception as ex:
+            except Exception as ex:  # pylint:disable=w0703
                 logging.warn("exception depths:%s" % ex)
                 traceback.print_exc()
                 return

@@ -11,14 +11,16 @@ import json
 from concurrent.futures import ThreadPoolExecutor, wait
 import traceback
 
-import re,sys,re
+import re, sys, re
 import string
-from datafeed import Datafeed
+from datafeed import DataFeed
 
-class Arbitrer(Datafeed):
+
+class Arbitrer(DataFeed):
+
     def __init__(self):
         super.__init__()
-                
+
     def get_profit_for(self, mi, mj, kask, kbid):
         if self.depths[kask]["asks"][mi]["price"] >= self.depths[kbid]["bids"][mj]["price"]:
             return 0, 0, 0, 0
@@ -45,7 +47,7 @@ class Arbitrer(Datafeed):
                 w_bprice = price
             else:
                 w_bprice = (w_bprice * (buy_total - amount) + price * amount) / buy_total
-            
+
             if max_amount_pair_t - buy_total <= 0.000001:
                 break
 
@@ -61,18 +63,18 @@ class Arbitrer(Datafeed):
                 w_sprice = price
             else:
                 w_sprice = (w_sprice * (sell_total - amount) + price * amount) / sell_total
-        
+
             if max_amount_pair_t - sell_total <= 0.000001:
                 break
 
         # sell should == buy
-        if abs(sell_total-buy_total) > 0.000001:
+        if abs(sell_total - buy_total) > 0.000001:
             logging.warn("sell_total=%s, buy_total=%s, max_amount_pair_t=%s", 
-                sell_total, buy_total, max_amount_pair_t)
+                         sell_total, buy_total, max_amount_pair_t)
             raise
             return 0, 0, 0, 0
 
-        volume = buy_total # or sell_total
+        volume = buy_total  # or sell_total
 
         profit = sell_total * w_sprice - buy_total * w_bprice
         return profit, volume, w_bprice, w_sprice
@@ -82,7 +84,7 @@ class Arbitrer(Datafeed):
         if len(self.depths[kbid]["bids"]) != 0 and \
            len(self.depths[kask]["asks"]) != 0:
             while self.depths[kask]["asks"][i]["price"] \
-                  < self.depths[kbid]["bids"][0]["price"]:
+                    < self.depths[kbid]["bids"][0]["price"]:
                 if i >= len(self.depths[kask]["asks"]) - 1:
                     break
                 # logging.debug("i:%s,%s/%s,%s/%s", i, kask, self.depths[kask]["asks"][i]["price"],
@@ -94,7 +96,7 @@ class Arbitrer(Datafeed):
         if len(self.depths[kask]["asks"]) != 0 and \
            len(self.depths[kbid]["bids"]) != 0:
             while self.depths[kask]["asks"][0]["price"] \
-                  < self.depths[kbid]["bids"][j]["price"]:
+                    < self.depths[kbid]["bids"][j]["price"]:
                 if j >= len(self.depths[kbid]["bids"]) - 1:
                     break
                 # logging.debug("j:%s,%s/%s,%s/%s", j, kask, self.depths[kask]["asks"][0]["price"],
@@ -121,9 +123,9 @@ class Arbitrer(Datafeed):
                     best_w_bprice, best_w_sprice = (
                         w_bprice, w_sprice)
         return best_profit, best_volume, \
-               self.depths[kask]["asks"][best_i]["price"], \
-               self.depths[kbid]["bids"][best_j]["price"], \
-               best_w_bprice, best_w_sprice
+            self.depths[kask]["asks"][best_i]["price"], \
+            self.depths[kbid]["bids"][best_j]["price"], \
+            best_w_bprice, best_w_sprice
 
     def arbitrage_opportunity(self, kask, ask, kbid, bid):
         profit, volume, exe_bprice, exe_sprice, w_bprice,\
@@ -135,13 +137,13 @@ class Arbitrer(Datafeed):
 
         ask_market = self.get_market(kask)
         bid_market = self.get_market(kbid)
-        if round(w_sprice * ask_market.fee_rate * config.Diff, 8)  >= round(w_bprice * bid_market.fee_rate, 8):
+        if round(w_sprice * ask_market.fee_rate * config.Diff, 8) >= round(w_bprice * bid_market.fee_rate, 8):
             logging.verbose("weight pricediff_exist check failed: %s > %s" % (
                 round(w_sprice * ask_market.fee_rate * config.Diff, 8), round(w_bprice * bid_market.fee_rate, 8)))
             return
 
         fee_rate = max(ask_market.fee_rate, bid_market.fee_rate)
-        profit = round(profit*(1-fee_rate), 8)
+        profit = round(profit * (1 - fee_rate), 8)
 
         w_perc = round((w_sprice - w_bprice) / w_bprice - fee_rate, 4)
 
@@ -180,7 +182,7 @@ class Arbitrer(Datafeed):
             return False
         if len(depth1["asks"]) <= 0 or len(depth2["bids"]) <= 0:
             return False
-        
+
         sprice = float(depth1["asks"][0]['price'])
         bprice = float(depth2["bids"][0]['price'])
 
@@ -189,16 +191,16 @@ class Arbitrer(Datafeed):
                 round(sprice * config.FEE * config.Diff, 8), round(bprice * config.FEE, 8)))
             return False   
 
-        if round(sprice * config.FEE * config.Diff, 8)  >= round(bprice * config.FEE, 8):
+        if round(sprice * config.FEE * config.Diff, 8) >= round(bprice * config.FEE, 8):
             logging.verbose("FEE*DIFF pricediff_exist check failed: %s > %s" % (
                 round(sprice * config.FEE * config.Diff, 8), round(bprice * config.FEE, 8)))
             return False
-        
+
         return True
 
     def observer_tick(self):
         # super.observer_tick()
-        
+
         for observer in self.observers:
             observer.begin_opportunity_finder(self.depths)
 

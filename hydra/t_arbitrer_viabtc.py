@@ -10,7 +10,7 @@ from brokers import viabtc_bch_cny, viabtc_bch_btc, viabtc_btc_cny
 from datafeed import DataFeed
 
 
-class TrigangularArbitrer_Viabtc(Datafeed):
+class TrigangularArbitrer_Viabtc(DataFeed):
 
     def __init__(self, base_pair, pair1, pair2, monitor_only=False):
         super().__init__()
