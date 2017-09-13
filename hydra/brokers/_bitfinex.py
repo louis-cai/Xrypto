@@ -1,11 +1,11 @@
 
-from .market import Market
+from .broker import Broker
 import logging
 import bitfinex
 # python3 hydra/cli.py -m Bitfinex_BCH_BTC get-balance
 
 
-class Bitfinex(Market):  # pylint: disable=W0223
+class Bitfinex(Broker):  # pylint: disable=W0223
 
     def __init__(self, base_currency, market_currency, pair_code, api_key=None, api_secret=None):
         assert isinstance(api_key, str)

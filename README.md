@@ -1,5 +1,6 @@
 # opportunity detector and automated trading
 
+
 It gets order books from supported exchanges and calculate arbitrage and triangular-arbitrage
 opportunities between each markets. It takes market depth into account.
 
@@ -129,6 +130,10 @@ Help
 
 # Example
 
+liquid in kkex
+
+    python3 hydra/cli.py -mKKEX_BCH_BTC,Viabtc_BCH_BTC -oMM
+
 arbitrage in haobtc, huobi or okcoin
 
     python3 hydra/cli.py -oTraderBot -mHaobtcCNY,HuobiCNY
@@ -144,6 +149,11 @@ balance statatistic
 
     python3 hydra/cli.py -oBalanceDumper -mHaobtcCNY
     
+price diff:
+
+    python3 hydra/cli.py -oPriceMonitor -mOKCoin_BTC_CNY,OKEx_Future_Quarter,Bitfinex_BTC_USD
+
+
 bistar test
 
     python3 hydra/bitstar_test.py
