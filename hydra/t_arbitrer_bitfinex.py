@@ -6,10 +6,10 @@
 import logging
 import time
 import config
-from arbitrer import Arbitrer
+from datafeed import DataFeed
 
 
-class TrigangularArbitrer_Bitfinex(Arbitrer):
+class TrigangularArbitrer_Bitfinex(DataFeed):
 
     def __init__(self, base_pair, pair1, pair2, monitor_only=True):
         super().__init__()

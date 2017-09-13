@@ -13,7 +13,7 @@ class TradeException(Exception):
     pass
 
 
-class Market:
+class Broker(object):
 
     def __init__(self, base_currency, market_currency, pair_code):
         self.name = self.__class__.__name__
@@ -56,7 +56,8 @@ class Market:
                                                "eth_available": self.eth_available}))
 
     def buy_limit(self, amount, price, client_id=None):
-        if self.market_currency == 'BCH' and amount > config.bch_guide_dog_volume:
+        if self.market_currency == 'BCH' and amount > config.RISK_PROTECT_MAX_VOLUMN:
+            logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
             raise
 
         logging.info("BUY LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
@@ -72,7 +73,8 @@ class Market:
             return None
 
     def sell_limit(self, amount, price, client_id=None):
-        if self.market_currency == 'BCH' and amount > config.bch_guide_dog_volume:
+        if self.market_currency == 'BCH' and amount > config.RISK_PROTECT_MAX_VOLUMN:
+            logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
             raise
 
         logging.info("SELL LIMIT %f %s at %f %s @%s" % (amount, self.market_currency, 
@@ -88,6 +90,10 @@ class Market:
             return None
 
     def buy_maker(self, amount, price):
+        if amount > config.RISK_PROTECT_MAX_VOLUMN:
+            logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
+            raise
+
         logging.info("BUY MAKER %f %s at %f %s @%s" % (amount, self.market_currency, 
                                                        price, self.base_currency, self.brief_name))
 
@@ -98,6 +104,10 @@ class Market:
             return None
 
     def sell_maker(self, amount, price):
+        if amount > config.RISK_PROTECT_MAX_VOLUMN:
+            logging.error('risk alert: amount %s > risk amount:%s' % (amount, config.RISK_PROTECT_MAX_VOLUMN))
+            raise
+
         logging.info("SELL MAKER %f %s at %f %s @%s" % (amount, self.market_currency, 
                                                         price, self.base_currency, self.brief_name))
         try:
@@ -125,6 +135,20 @@ class Market:
         except Exception as e:
             logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
 
+            return None
+
+    def get_orders(self, order_ids):
+        try:
+            return self._get_orders(order_ids)
+        except Exception as e:
+            logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
+            return None
+
+    def get_orders_history(self):
+        try:
+            return self._get_orders_history()
+        except Exception as e:
+            logging.error('%s %s except: %s' % (self.name, get_current_function_name(), e))
             return None
 
     def get_balances(self):
@@ -160,6 +184,12 @@ class Market:
 
     def _cancel_order(self, order_id):
         raise NotImplementedError("%s.cancel_order(self, order_id)" % self.name)
+
+    def _get_orders(self, order_ids):
+        raise NotImplementedError("%s.get_orders(self, order_ids)" % self.name)
+
+    def _get_orders_history(self):
+        raise NotImplementedError("%s._get_orders_history(self)" % self.name)
 
     def _cancel_all(self):
         raise NotImplementedError("%s.cancel_all(self)" % self.name)

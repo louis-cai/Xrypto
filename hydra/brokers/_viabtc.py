@@ -1,20 +1,22 @@
 # Copyright (C) 2017, Philsong <songbohr@gmail.com>
 
-from .market import Market, TradeException
+from .broker import Broker, TradeException
 import config
 import logging
 from lib.viabtc.ViabtcAPI import ViabtcClient
 
-class Viabtc(Market):
+
+class Viabtc(Broker):
+
     def __init__(self, base_currency, market_currency, pair_code, api_key=None, api_secret=None):
         super().__init__(base_currency, market_currency, pair_code)
 
         self.orders = {}
 
         self.client = ViabtcClient(
-                    api_key if api_key else config.Viabtc_API_KEY,
-                    api_secret if api_secret else config.Viabtc_SECRET_TOKEN)
- 
+            api_key if api_key else config.Viabtc_API_KEY,
+            api_secret if api_secret else config.Viabtc_SECRET_TOKEN)
+
     def _buy_limit(self, amount, price):
         """Create a buy limit order"""
         res = self.client.order_limit(

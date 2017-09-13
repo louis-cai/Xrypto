@@ -1,20 +1,21 @@
 
-from .market import Market
+from .broker import Broker
 import logging
 import bitfinex
+import config
 # python3 hydra/cli.py -m Bitfinex_BCH_BTC get-balance
 
 
-class Bitfinex(Market):  # pylint: disable=W0223
+class Bitfinex(Broker):  # pylint: disable=W0223
 
     def __init__(self, base_currency, market_currency, pair_code, api_key=None, api_secret=None):
-        assert isinstance(api_key, str)
-        assert isinstance(api_secret, str)
         assert isinstance(base_currency, str)
         assert isinstance(market_currency, str)
         assert isinstance(pair_code, str)
         super().__init__(base_currency, market_currency, pair_code)
-        self.client = bitfinex.TradeClient(api_key, api_secret)
+        # pylint:disable=e1101
+        self.client = bitfinex.TradeClient(api_key if api_key else config.Bitfinex_API_KEY,
+                                           api_secret if api_secret else config.Bitfinex_SECRET_TOKEN)
 
     def _buy_limit(self, amount, price):
         """Create a buy limit order"""

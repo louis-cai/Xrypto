@@ -1,24 +1,26 @@
-# Copyright (C) 2013, Maxime Biais <maxime@biais.org>
-# Copyright (C) 2016, Phil Song <songbohr@gmail.com>
+# Copyright (C) 2016-2017, Phil Song <songbohr@gmail.com>
 import os
 import logging
 import argparse
 import sys
-import markets
 import glob
 import inspect
-from arbitrer import Arbitrer
 
 from logging.handlers import RotatingFileHandler
-import lib.broker_api as exchange_api
-import datetime
+# import datetime
 import time
-import config
-import traceback
+# import config
+# import traceback
+
+import markets
 from snapshot import Snapshot
+from datafeed import DataFeed
+from arbitrer import Arbitrer
+
+# pylint:disable=w0122,w0123
 
 
-class ArbitrerCLI:
+class CLI:
 
     def __init__(self):
         self.inject_verbose_info()
@@ -31,44 +33,48 @@ class ArbitrerCLI:
     def exec_command(self, args):
         logging.debug('exec_command:%s', args)
         if "watch" in args.command:
+            self.create_datafeed(args)
+            self.datafeed.run_loop()
+
+        if "b-watch" in args.command:
             self.create_arbitrer(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-viabtc-bcc" in args.command:
             self.create_t_arbitrer_viabtc_bcc(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-bitfinex-eos" in args.command:
             self.create_t_arbitrer_bitfinex_eos(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-bitfinex-bch" in args.command:
             self.create_t_arbitrer_bitfinex_bch(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-binance-wtc" in args.command:
             self.create_t_arbitrer_binance_wtc(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-binance-bnb" in args.command:
             self.create_t_arbitrer_binance_bnb(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-binance-lrc" in args.command:
             self.create_t_arbitrer_binance_lrc(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-binance-mco" in args.command:
             self.create_t_arbitrer_binance_mco(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "t-watch-binance-qtum" in args.command:
             self.create_t_arbitrer_binance_qtum(args)
-            self.arbitrer.loop()
+            self.datafeed.run_loop()
 
         if "replay-history" in args.command:
             self.create_arbitrer(args)
-            self.arbitrer.replay_history(args.replay_history)
+            self.datafeed.replay_history(args.replay_history)
         if "get-balance" in args.command:
             self.get_balance(args)
         if "list-public-markets" in args.command:
@@ -81,16 +87,16 @@ class ArbitrerCLI:
             self.test_pri(args)
 
     def get_broker_balance(self, args):
-        raise NotImplementedError("%s.get_broker_balance(self, args)" % self.name)
+        raise NotImplementedError("CLI get_broker_balance(self, args)")
 
     def list_markets(self):
         logging.debug('list_markets') 
         for filename in glob.glob(os.path.join(markets.__path__[0], "*.py")):
             module_name = os.path.basename(filename).replace('.py', '')
             if not module_name.startswith('_'):
-                module = __import__("markets." + module_name)
+                __import__("markets." + module_name)
                 test = eval('module.' + module_name)
-                for name, obj in inspect.getmembers(test):
+                for _, obj in inspect.getmembers(test):
                     if inspect.isclass(obj) and 'Market' in (j.__name__ for j in obj.mro()[1:]):
                         if not obj.__module__.split('.')[-1].startswith('_'):
                             print(obj.__name__)
@@ -104,8 +110,7 @@ class ArbitrerCLI:
         pmarketsi = []
         for pmarket in pmarkets:
             exec('import markets.' + pmarket.lower())
-            market = eval('markets.' + pmarket.lower() + '.' +
-                          pmarket + '()')
+            market = eval('markets.' + pmarket.lower() + '.' + pmarket + '()')
             pmarketsi.append(market)
 
         for market in pmarketsi:
@@ -134,8 +139,7 @@ class ArbitrerCLI:
         pmarketsi = []
         for pmarket in pmarkets:
             exec('import brokers.' + pmarket.lower())
-            market = eval('brokers.' + pmarket.lower()
-                          + '.Broker' + pmarket + '()')
+            market = eval('brokers.' + pmarket.lower() + '.Broker' + pmarket + '()')
             pmarketsi.append(market)
 
         snapshot = Snapshot()
@@ -154,71 +158,75 @@ class ArbitrerCLI:
 
             time.sleep(60 * 10)
 
+    def create_datafeed(self, args):
+        self.datafeed = DataFeed()
+        self.init_observers_and_markets(args)
+
     def create_arbitrer(self, args):
-        self.arbitrer = Arbitrer()
+        self.datafeed = Arbitrer()
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_viabtc_bcc(self, args):
         from t_arbitrer_viabtc import TrigangularArbitrer_Viabtc
-        self.arbitrer = TrigangularArbitrer_Viabtc(base_pair='Viabtc_BCH_CNY',
+        self.datafeed = TrigangularArbitrer_Viabtc(base_pair='Viabtc_BCH_CNY',
                                                    pair1='Viabtc_BCH_BTC',
                                                    pair2='Viabtc_BTC_CNY')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_bitfinex_eos(self, args):
         from t_arbitrer_bitfinex import TrigangularArbitrer_Bitfinex
-        self.arbitrer = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_EOS_USD',
+        self.datafeed = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_EOS_USD',
                                                      pair1='Bitfinex_EOS_ETH',
                                                      pair2='Bitfinex_ETH_USD')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_bitfinex_bch(self, args):
         from t_arbitrer_bitfinex import TrigangularArbitrer_Bitfinex
-        self.arbitrer = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_BCH_USD',
+        self.datafeed = TrigangularArbitrer_Bitfinex(base_pair='Bitfinex_BCH_USD',
                                                      pair1='Bitfinex_BCH_BTC',
                                                      pair2='Bitfinex_BTC_USD')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_wtc(self, args):
         from t_arbitrer_binance import TrigangularArbitrer_Binance
-        self.arbitrer = TrigangularArbitrer_Binance(base_pair='Binance_WTC_BTC',
+        self.datafeed = TrigangularArbitrer_Binance(base_pair='Binance_WTC_BTC',
                                                     pair1='Binance_WTC_ETH',
                                                     pair2='Binance_ETH_BTC')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_bnb(self, args):
         from t_arbitrer_binance import TrigangularArbitrer_Binance
-        self.arbitrer = TrigangularArbitrer_Binance(base_pair='Binance_BNB_BTC',
+        self.datafeed = TrigangularArbitrer_Binance(base_pair='Binance_BNB_BTC',
                                                     pair1='Binance_BNB_ETH',
                                                     pair2='Binance_ETH_BTC')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_lrc(self, args):
         from t_arbitrer_binance import TrigangularArbitrer_Binance
-        self.arbitrer = TrigangularArbitrer_Binance(base_pair='Binance_LRC_BTC',
+        self.datafeed = TrigangularArbitrer_Binance(base_pair='Binance_LRC_BTC',
                                                     pair1='Binance_LRC_ETH',
                                                     pair2='Binance_ETH_BTC')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_mco(self, args):
         from t_arbitrer_binance import TrigangularArbitrer_Binance
-        self.arbitrer = TrigangularArbitrer_Binance(base_pair='Binance_MCO_BTC',
+        self.datafeed = TrigangularArbitrer_Binance(base_pair='Binance_MCO_BTC',
                                                     pair1='Binance_MCO_ETH',
                                                     pair2='Binance_ETH_BTC')
         self.init_observers_and_markets(args)
 
     def create_t_arbitrer_binance_qtum(self, args):
         from t_arbitrer_binance import TrigangularArbitrer_Binance
-        self.arbitrer = TrigangularArbitrer_Binance(base_pair='Binance_QTUM_BTC',
+        self.datafeed = TrigangularArbitrer_Binance(base_pair='Binance_QTUM_BTC',
                                                     pair1='Binance_QTUM_ETH',
                                                     pair2='Binance_ETH_BTC')
         self.init_observers_and_markets(args)
 
     def init_observers_and_markets(self, args):
         if args.observers:
-            self.arbitrer.init_observers(args.observers.split(","))
+            self.datafeed.init_observers(args.observers.split(","))
         if args.markets:
-            self.arbitrer.init_markets(args.markets.split(","))
+            self.datafeed.init_markets(args.markets.split(","))
 
     def init_logger(self, args):
         level = logging.INFO
@@ -256,10 +264,11 @@ class ArbitrerCLI:
         self.init_logger(args)
         self.exec_command(args)
         print('main end')
+        exit(-1)
 
 
 def main():
-    cli = ArbitrerCLI()
+    cli = CLI()
     cli.main()
 
 if __name__ == "__main__":
