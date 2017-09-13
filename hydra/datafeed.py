@@ -9,7 +9,6 @@ import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, wait
 import traceback
-import sys
 import signal
 
 
@@ -150,6 +149,6 @@ class DataFeed(object):
                 logging.info("APP Exit")
                 self.terminate()
                 break
-            sys.stdout.write(".")
-            sys.stdout.flush()
+            # sys.stdout.write(".")
+            # sys.stdout.flush()
             time.sleep(config.refresh_rate)
