@@ -54,6 +54,9 @@ class TrigangularArbitrer_Bitfinex(DataFeed):
         #                             "eth_available": self.clients[self.base_pair].eth_available}))
         # self.forward()
         # self.reverse()
+        if len(self.depths) < 3:
+            return
+
         _forward_price = self.forward_price()
         _reverse_price = self.reverse_price()
         _sum_slippage_fee = self.sum_slippage_fee()
