@@ -3,6 +3,8 @@
 # pylint: disable=E0401,E1101,W1201
 # python3 hydra/cli.py -m Bitfinex_EOS_USD,Bitfinex_EOS_ETH,Bitfinex_ETH_USD t-watch -v
 # python3 hydra/cli.py -m Bitfinex_EOS_USD,Bitfinex_EOS_ETH,Bitfinex_ETH_USD t-watch-bitfinex-eos -v
+# python3 hydra/cli.py -m Bitfinex_BCH_USD,Bitfinex_BCH_BTC,Bitfinex_BTC_USD t-watch-bitfinex-bch -v
+
 import logging
 import time
 import config
@@ -60,10 +62,16 @@ class TrigangularArbitrer_Bitfinex(DataFeed):
         _forward_price = self.forward_price()
         _reverse_price = self.reverse_price()
         _sum_slippage_fee = self.sum_slippage_fee()
+
+        logging.debug("forward spread:%0.5f, reverse spread:%0.5f, cost:%0.3f", 
+                      _forward_price, _reverse_price, _sum_slippage_fee)
+
         if _forward_price > 0.003:
             logging.info("forward spread:%0.5f, cost:%0.3f", _forward_price, _sum_slippage_fee)
+
         if _reverse_price > 0.003:
             logging.info("reverse spread:%0.5f, cost:%0.3f", _reverse_price, _sum_slippage_fee)
+
         if _forward_price > _sum_slippage_fee:
             logging.info("forward find t!!! %0.5f", _forward_price)
         elif _sum_slippage_fee > _sum_slippage_fee:
@@ -73,12 +81,16 @@ class TrigangularArbitrer_Bitfinex(DataFeed):
         market_price_sell_1 = self.depths[self.pair_1]["asks"][0]["price"]
         base_mid_price_buy_1 = self.depths[self.base_pair]["bids"][0]["price"]
         quote_mid_price_sell_1 = self.depths[self.pair_2]["asks"][0]["price"]
+        if market_price_sell_1 == 0:
+            return 0
         return (base_mid_price_buy_1 / quote_mid_price_sell_1 - market_price_sell_1) / market_price_sell_1
 
     def reverse_price(self):
         market_price_buy_1 = self.depths[self.pair_1]["bids"][0]["price"]
         base_mid_price_sell_1 = self.depths[self.base_pair]["asks"][0]["price"]
         quote_mid_price_buy_1 = self.depths[self.pair_2]["bids"][0]["price"]
+        if market_price_buy_1 == 0:
+            return 0
         return (market_price_buy_1 - base_mid_price_sell_1 / quote_mid_price_buy_1) / market_price_buy_1
 
     def sum_slippage_fee(self):
